@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GET Learning Passport — Public Impact Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0f1c;
+            --card: #111827;
+            --card-border: #1e293b;
+            --accent: #22d3ee;
+            --accent2: #a78bfa;
+            --accent3: #34d399;
+            --accent4: #f472b6;
+            --text: #e2e8f0;
+            --text-dim: #64748b;
+            --polygon: #7b3fe4;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Subtle animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridShift 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridShift {
+            0% { transform: translate(0,0); }
+            100% { transform: translate(60px,60px); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ====== HEADER ====== */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: fadeUp 0.8s ease-out;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(123,63,228,0.2), rgba(34,211,238,0.2));
+            border: 1px solid rgba(123,63,228,0.3);
+            padding: 6px 16px;
+            border-radius: 99px;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .header-badge .dot {
+            width: 8px; height: 8px;
+            background: var(--accent3);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        h1 {
+            font-size: clamp(28px, 5vw, 48px);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 12px;
+        }
+
+        h1 .gradient {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ====== LIVE METRICS BAR ====== */
+        .metrics-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.8s ease-out backwards;
+        }
+
+        .metric-card:nth-child(1) { animation-delay: 0.1s; }
+        .metric-card:nth-child(2) { animation-delay: 0.2s; }
+        .metric-card:nth-child(3) { animation-delay: 0.3s; }
+        .metric-card:nth-child(4) { animation-delay: 0.4s; }
+        .metric-card:nth-child(5) { animation-delay: 0.5s; }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .metric-card:nth-child(1)::after { background: var(--accent); }
+        .metric-card:nth-child(2)::after { background: var(--accent2); }
+        .metric-card:nth-child(3)::after { background: var(--accent3); }
+        .metric-card:nth-child(4)::after { background: var(--accent4); }
+        .metric-card:nth-child(5)::after { background: var(--polygon); }
+
+        .metric-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            font-family: 'Space Mono', monospace;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            line-height: 1;
+        }
+
+        .metric-value.cyan { color: var(--accent); }
+        .metric-value.purple { color: var(--accent2); }
+        .metric-value.green { color: var(--accent3); }
+        .metric-value.pink { color: var(--accent4); }
+        .metric-value.poly { color: var(--polygon); }
+
+        .metric-sub {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        /* ====== SECTIONS ====== */
+        .section-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--card-border), transparent);
+        }
+
+        /* ====== CREDENTIAL TABLE ====== */
+        .table-wrapper {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 40px;
+            animation: fadeUp 0.8s ease-out 0.3s backwards;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(34,211,238,0.05);
+        }
+
+        th {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 400;
+        }
+
+        td {
+            padding: 14px 20px;
+            border-top: 1px solid var(--card-border);
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: rgba(34,211,238,0.03);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-tour { background: rgba(34,211,238,0.15); color: var(--accent); }
+        .badge-badge { background: rgba(167,139,250,0.15); color: var(--accent2); }
+        .badge-scholarship { background: rgba(244,114,182,0.15); color: var(--accent4); }
+
+        .addr {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--accent);
+            opacity: 0.8;
+        }
+
+        .gxp {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+        }
+
+        .soulbound-tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--accent3);
+            border: 1px solid rgba(52,211,153,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* ====== FUND FLOW ====== */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            animation: fadeUp 0.8s ease-out 0.5s backwards;
+        }
+
+        .panel h3 {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .milestone {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .milestone:last-child { border-bottom: none; }
+
+        .milestone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .milestone-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .milestone-status {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .status-released {
+            background: rgba(52,211,153,0.15);
+            color: var(--accent3);
+        }
+
+        .status-submitted {
+            background: rgba(34,211,238,0.15);
+            color: var(--accent);
+        }
+
+        .status-pending {
+            background: rgba(100,116,139,0.15);
+            color: var(--text-dim);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 1.5s ease-out;
+        }
+
+        .fill-green { background: linear-gradient(90deg, var(--accent3), #6ee7b7); }
+        .fill-cyan { background: linear-gradient(90deg, var(--accent), #67e8f9); }
+        .fill-dim { background: var(--text-dim); }
+
+        .milestone-amount {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 6px;
+        }
+
+        /* ====== PAYMENT FLOW ====== */
+        .flow-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .flow-item:last-child { border-bottom: none; }
+
+        .flow-pct {
+            font-family: 'Space Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+            min-width: 60px;
+        }
+
+        .flow-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .flow-fill {
+            height: 100%;
+            border-radius: 99px;
+            animation: barGrow 1.5s ease-out 1s backwards;
+        }
+
+        @keyframes barGrow {
+            from { width: 0 !important; }
+        }
+
+        .flow-label {
+            font-size: 13px;
+            min-width: 140px;
+            text-align: right;
+        }
+
+        /* ====== SCHOLARSHIP TABLE ====== */
+        .scholarship-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .scholarship-row:last-child { border-bottom: none; }
+
+        /* ====== BLOCKCHAIN PROOF ====== */
+        .proof-section {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 40px;
+            animation: fadeUp 0.8s ease-out 0.7s backwards;
+        }
+
+        .proof-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 0;
+        }
+
+        .proof-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .proof-icon.polygon {
+            background: rgba(123,63,228,0.2);
+            border: 1px solid rgba(123,63,228,0.3);
+        }
+
+        .proof-text {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .proof-text a {
+            color: var(--accent);
+            text-decoration: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+        }
+
+        .proof-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* ====== FOOTER ====== */
+        .footer {
+            text-align: center;
+            padding: 40px 0 20px;
+            color: var(--text-dim);
+            font-size: 13px;
+        }
+
+        .footer-logos {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .footer-logos span:first-child { color: var(--accent); }
+        .footer-logos span:nth-child(2) { color: var(--polygon); }
+        .footer-logos span:last-child { color: #3b82f6; }
+
+        /* ====== ANIMATIONS ====== */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ====== COUNTER ANIMATION ====== */
+        .counter {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-badge">
+                <span class="dot"></span>
+                Live on Polygon · All data read from blockchain
+            </div>
+            <h1>GET <span class="gradient">Learning Passport</span></h1>
+            <p class="subtitle">
+                Public Impact Dashboard — every credential, scholarship, and payment is independently verifiable on-chain.
+                No self-reported data. No trust required.
+            </p>
+        </header>
+
+        <!-- LIVE METRICS -->
+        <div class="metrics-bar">
+            <div class="metric-card">
+                <div class="metric-label">Credentials Issued</div>
+                <div class="metric-value cyan" id="m-credentials">847</div>
+                <div class="metric-sub">soulbound NFTs on Polygon</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Unique Children</div>
+                <div class="metric-value purple" id="m-children">312</div>
+                <div class="metric-sub">across 8 schools</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Scholarships Funded</div>
+                <div class="metric-value green" id="m-scholarships">54</div>
+                <div class="metric-sub">underserved children</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total GXP Earned</div>
+                <div class="metric-value pink" id="m-gxp">24,800</div>
+                <div class="metric-sub">learning points on-chain</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Fund Transparency</div>
+                <div class="metric-value poly">100%</div>
+                <div class="metric-sub">publicly auditable</div>
+            </div>
+        </div>
+
+        <!-- RECENT CREDENTIALS -->
+        <div class="section-title">Recent Verified Credentials</div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Token ID</th>
+                        <th>Holder</th>
+                        <th>Type</th>
+                        <th>Tour</th>
+                        <th>GXP</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="gxp">#847</span></td>
+                        <td><span class="addr">0x7a3F...c8E2</span></td>
+                        <td><span class="badge badge-tour">TOUR COMPLETION</span></td>
+                        <td>WINTER-2025-DEC</td>
+                        <td><span class="gxp">100</span></td>
+                        <td><span class="soulbound-tag">⛓ SOULBOUND</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="gxp">#846</span></td>
+                        <td><span class="addr">0x1bC4...9fA1</span></td>
+                        <td><span class="badge badge-badge">GLOBETROTTER BADGE</span></td>
+                        <td>WINTER-2025-DEC</td>
+                        <td><span class="gxp">200</span></td>
+                        <td><span class="soulbound-tag">⛓ SOULBOUND</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="gxp">#845</span></td>
+                        <td><span class="addr">0x4eD8...2bF3</span></td>
+                        <td><span class="badge badge-tour">TOUR COMPLETION</span></td>
+                        <td>WINTER-2025-DEC</td>
+                        <td><span class="gxp">100</span></td>
+                        <td><span class="soulbound-tag">⛓ SOULBOUND</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="gxp">#844</span></td>
+                        <td><span class="addr">0x9cA2...7dE5</span></td>
+                        <td><span class="badge badge-scholarship">SCHOLARSHIP RECIPIENT</span></td>
+                        <td>WINTER-2025-DEC</td>
+                        <td><span class="gxp">100</span></td>
+                        <td><span class="soulbound-tag">⛓ SOULBOUND</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="gxp">#843</span></td>
+                        <td><span class="addr">0x3fB6...1aD9</span></td>
+                        <td><span class="badge badge-badge">ADVENTURER BADGE</span></td>
+                        <td>AUTUMN-2025-OCT</td>
+                        <td><span class="gxp">150</span></td>
+                        <td><span class="soulbound-tag">⛓ SOULBOUND</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- TWO COLUMN: MILESTONES + PAYMENT FLOW -->
+        <div class="two-col">
+
+            <!-- MILESTONE ESCROW -->
+            <div class="panel">
+                <div class="section-title">UNICEF Milestone Escrow</div>
+                <div class="milestone">
+                    <div class="milestone-header">
+                        <span class="milestone-name">Onboard 500 children</span>
+                        <span class="milestone-status status-released">✓ RELEASED</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill fill-green" style="width:100%"></div></div>
+                    <div class="milestone-amount">$25,000 USDC → released Jan 15, 2026</div>
+                </div>
+                <div class="milestone">
+                    <div class="milestone-header">
+                        <span class="milestone-name">Issue 1,000 credentials</span>
+                        <span class="milestone-status status-submitted">⏳ SUBMITTED</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill fill-cyan" style="width:85%"></div></div>
+                    <div class="milestone-amount">$30,000 USDC → proof submitted, awaiting verification</div>
+                </div>
+                <div class="milestone">
+                    <div class="milestone-header">
+                        <span class="milestone-name">Partner with 5 schools</span>
+                        <span class="milestone-status status-pending">PENDING</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill fill-dim" style="width:40%"></div></div>
+                    <div class="milestone-amount">$20,000 USDC → 2 of 5 schools onboarded</div>
+                </div>
+            </div>
+
+            <!-- PAYMENT DISTRIBUTION -->
+            <div class="panel">
+                <div class="section-title">Payment Distribution</div>
+                <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">Every registration payment is atomically split by smart contract:</p>
+
+                <div class="flow-item">
+                    <span class="flow-pct" style="color:var(--accent);">80%</span>
+                    <div class="flow-bar"><div class="flow-fill" style="width:80%;background:var(--accent);"></div></div>
+                    <span class="flow-label">GET Operations</span>
+                </div>
+                <div class="flow-item">
+                    <span class="flow-pct" style="color:var(--accent2);">10%</span>
+                    <div class="flow-bar"><div class="flow-fill" style="width:40%;background:var(--accent2);"></div></div>
+                    <span class="flow-label">School Partner</span>
+                </div>
+                <div class="flow-item">
+                    <span class="flow-pct" style="color:var(--accent4);">5%</span>
+                    <div class="flow-bar"><div class="flow-fill" style="width:20%;background:var(--accent4);"></div></div>
+                    <span class="flow-label">Referrer</span>
+                </div>
+                <div class="flow-item">
+                    <span class="flow-pct" style="color:var(--accent3);">5%</span>
+                    <div class="flow-bar"><div class="flow-fill" style="width:20%;background:var(--accent3);"></div></div>
+                    <span class="flow-label">Explorer Scholarship Fund</span>
+                </div>
+
+                <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:10px;">
+                    <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--accent3);">
+                        Total processed: <strong>₦31,250,000</strong> ($37,500 USD)
+                    </div>
+                    <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--text-dim);margin-top:4px;">
+                        Auto-contributed to scholarships: <strong>₦1,562,500</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOCKCHAIN VERIFICATION -->
+        <div class="proof-section">
+            <div class="section-title">On-Chain Verification</div>
+            <p style="font-size:14px;color:var(--text-dim);margin-bottom:16px;">
+                Every data point on this dashboard is independently verifiable. No trust required — read directly from Polygon.
+            </p>
+
+            <div class="proof-item">
+                <div class="proof-icon polygon">⬡</div>
+                <div class="proof-text">
+                    LearningCredential Contract<br>
+                    <a href="#">0x7a3F...c8E2 → View on Polygonscan ↗</a>
+                </div>
+            </div>
+            <div class="proof-item">
+                <div class="proof-icon polygon">⬡</div>
+                <div class="proof-text">
+                    ExplorerFund Contract (Scholarship + Escrow)<br>
+                    <a href="#">0x1bC4...9fA1 → View on Polygonscan ↗</a>
+                </div>
+            </div>
+            <div class="proof-item">
+                <div class="proof-icon polygon">⬡</div>
+                <div class="proof-text">
+                    CommissionDistributor Contract<br>
+                    <a href="#">0x4eD8...2bF3 → View on Polygonscan ↗</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-logos">
+                <span>🌍 GET</span>
+                <span>⬡ Polygon</span>
+                <span>🦄 UNICEF</span>
+            </div>
+            <p>
+                Open Source (MIT License) · Built as a Digital Public Good<br>
+                All smart contract code available at
+                <a href="#" style="color:var(--accent);text-decoration:none;">github.com/Clickshift-Founder/get-learning-passport</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Animate counters on load
+        function animateCounter(el, target, duration = 2000) {
+            const text = el.textContent;
+            const hasComma = text.includes(',');
+            let start = 0;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease out cubic
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = Math.floor(eased * target);
+
+                if (hasComma) {
+                    el.textContent = current.toLocaleString();
+                } else {
+                    el.textContent = current;
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        // Start animations when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                animateCounter(document.getElementById('m-credentials'), 847);
+                animateCounter(document.getElementById('m-children'), 312);
+                animateCounter(document.getElementById('m-scholarships'), 54);
+                animateCounter(document.getElementById('m-gxp'), 24800);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
